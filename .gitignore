@@ -1,0 +1,8 @@
+*.*
+**
+
+!.gitignore
+!.bash_profile
+!.aliases
+!.paths
+!.functions
