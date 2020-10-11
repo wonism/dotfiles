@@ -2,6 +2,7 @@
 **
 
 !.gitignore
+!.gitconfig
 !.bash_profile
 !.aliases
 !.paths

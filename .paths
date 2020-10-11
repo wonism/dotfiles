@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+
+export PATH=$PATH:~/.pub-cache/bin
+
+# Go lang
+export GOPATH=$HOME/go
+export PATH=$PATH:$GOPATH/bin
+
+# Mongo DB
+export MONGO_PATH='/usr/local/mongodb-3.2.4'
+export PATH=$PATH:$MONGO_PATH/bin
+
+# Cargo
+export PATH="$PATH:$HOME/.cargo/bin"
+
+# deno
+export PATH="$PATH:$HOME/.deno/bin"
+
+# elixir
+export PATH="$PATH:/usr/local/Cellar/elixir/1.10.4"
+
+# The next line updates PATH for the Google Cloud SDK.
+if [ -f "$HOME/google-cloud-sdk/path.bash.inc" ]; then source "$HOME/google-cloud-sdk/path.bash.inc"; fi
+
+# The next line enables shell command completion for gcloud.
+if [ -f "$HOME/google-cloud-sdk/completion.bash.inc" ]; then source "$HOME/google-cloud-sdk/completion.bash.inc"; fi

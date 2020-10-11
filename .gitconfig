@@ -1,0 +1,66 @@
+[color]
+  ui = true
+[user]
+  ;your name
+  name = wonism
+  ;your email
+  email = yocee57@gmail.com
+  ;your username
+  username = wonism
+[core]
+  editor = /usr/bin/vim
+[merge]
+  tool = vimdiff
+[push]
+  default = current
+[pull]
+  rebase = true
+[merge]
+  conflictstyle = diff3
+  defaultToUpstream = true
+[diff]
+  noprefix = true
+  colorMoved = zebra
+[filter "lfs"]
+  clean = git-lfs clean %f
+  smudge = git-lfs smudge %f
+  required = true
+[alias]
+  a = add
+  # add interactive
+  ai = "add -i"
+  c = commit
+  s = status
+  # show status only staged files
+  ss = "!f(){ git status --short | grep '^[MARCD]'; };f"
+  d = diff
+  b = branch
+  l = log
+  # oneline log
+  lp = "log --pretty=oneline"
+  ld = log --graph --boundary --pretty=format:'%Cred%h%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>'
+  # show last commit hash
+  ll = "log --pretty=\"format:%h\" HEAD^..HEAD"
+  p = push
+  pu = pull
+  co = checkout
+  undo = "!f(){ git checkout HEAD@{1}; };f"
+  unstage = "!f(){ git reset -- \"$1\"; };f"
+  cp = cherry-pick
+  # show current branch
+  cb = "rev-parse --abbrev-ref HEAD"
+  # set upstream
+  su = "!f(){ git push origin \"$1\" --set-upstream; };f"
+  # create new branch
+  nb = "!f(){ git checkout -b \"$1\"; git push origin \"$1\" --set-upstream; };f"
+  # update branch name
+  ub = "!f(){ git branch -m \"$1\" \"$2\"; git push origin :\"$1\" \"$2\"; git push origin -u \"$2\"; };f"
+  # delete branch
+  db = "!f(){ git branch -D \"$1\"; git push origin --delete \"$1\"; };f"
+  # delete branch on local (not remote)
+  dbl = "!f(){ git branch -D \"$1\"; };f"
+  tree = "log --graph --oneline --all"
+  # show refs
+  refs = for-each-ref --format=%(refname)
+  # make useful headings to paste into a GitHub review.
+  rv = "!f () { range=${1:-@{u\\}..}; git log --reverse --format='#### %h %s%n%n%n%n' \"$range\"; }; f"
