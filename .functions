@@ -25,3 +25,24 @@ function server() {
   # And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
   python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port";
 }
+
+# Open Pull Request page on current work
+function pr() {
+  url=$(git config --get remote.origin.url)
+
+  if [[ $url =~ "http" ]]; then
+    url=$(echo $url | sed -e "s/\.git//")
+  else
+    url=$(echo $url | sed -e "s/\:/\//" -e "s/git@/https:\/\//" -e "s/\.git//")
+  fi
+
+  branch=$(git branch --show-current)
+
+  open $url/compare/$branch?expand=1
+}
+
+# Clear branches on current git repository
+# except main, master, develop, alpha, beta, ...
+function cb() {
+  git branch | grep -v 'main\|master\|develop\|alpha|\beta' | awk '{cmd="git branch -D " $0; system(cmd)}'
+}
