@@ -36,7 +36,7 @@ function pr() {
     url=$(echo $url | sed -e "s/\:/\//" -e "s/git@/https:\/\//" -e "s/\.git//")
   fi
 
-  branch=$(git branch --show-current)
+  branch=$(git rev-parse --abbrev-ref HEAD)
 
   open $url/compare/$branch?expand=1
 }
