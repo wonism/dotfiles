@@ -1,6 +1,6 @@
-🖥 dotfiles
+# 🖥 dotfiles
 
-# Installation
+## Installation
 
 **⚠️ Disclaimer:** review files, then remove things that you don't want
 to use. Please use my settings carefully if you don't know what files
