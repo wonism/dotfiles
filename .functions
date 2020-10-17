@@ -46,3 +46,20 @@ function pr() {
 function cb() {
   git branch | grep -v 'main\|master\|develop\|alpha|\beta' | awk '{cmd="git branch -D " $0; system(cmd)}'
 }
+
+# Youtube downloader
+function ydl() {
+  youtube-dl --geo-bypass $1
+}
+
+# Find text and replace it on current directory
+function fr() {
+  if [[ -z $2 ]]; then
+    echo "Wrong inputs."
+    exit 1
+  fi
+
+  # 1st arg: old string
+  # 2nd arg: new string
+  grep -r -l $(echo "$1") . | sort | uniq | xargs perl -e "s/$(echo "$1")/$(echo "$2")/" -pi;
+}
