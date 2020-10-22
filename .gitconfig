@@ -43,6 +43,8 @@
   ll = "log --pretty=\"format:%h\" HEAD^..HEAD"
   p = push
   pu = pull
+  # changed files
+  cf = "diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD"
   co = checkout
   undo = "!f(){ git checkout HEAD@{1}; };f"
   unstage = "!f(){ git reset -- \"$1\"; };f"
