@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:
+
+# Add `~/bin` to the `$PATH`
+export PATH="$HOME/bin:$PATH";
+
 export PATH=$PATH:~/.pub-cache/bin
 
 # Go lang
@@ -24,3 +29,23 @@ if [ -f "$HOME/google-cloud-sdk/path.bash.inc" ]; then source "$HOME/google-clou
 
 # The next line enables shell command completion for gcloud.
 if [ -f "$HOME/google-cloud-sdk/completion.bash.inc" ]; then source "$HOME/google-cloud-sdk/completion.bash.inc"; fi
+
+export DYLD_LIBRARY_PATH=$DYLD_LIBRARY_PATH:/usr/local/opt/python/Frameworks/Python.framework/Versions/3.7/Python
+
+export PATH="$HOME/.yarn/bin:$HOME/.config/yarn/global/node_modules/.bin:$PATH"
+
+export PATH="/usr/local/opt/ruby/bin:$PATH"
+export PATH="/usr/local/Cellar/parallel/20201022:$PATH"
+
+# Hub
+#eval "$(hub alias -s)"
+
+# Node.js
+#export NVM_DIR="$HOME/.nvm"
+#[ -s "/usr/local/opt/nvm/nvm.sh" ] && . "/usr/local/opt/nvm/nvm.sh"  # This loads nvm
+#[ -s "/usr/local/opt/nvm/etc/bash_completion" ] && . "/usr/local/opt/nvm/etc/bash_completion"  # This loads nvm bash_completion
+
+# Go
+# - bin
+#export PATH=$PATH:$HOME/go/bin
+export PATH=$PATH:/usr/local/go/bin

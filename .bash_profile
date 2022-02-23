@@ -1,10 +1,18 @@
+#!/bin/bash
+
+export LC_ALL=en_US.utf-8
+export LANG="$LC_ALL"
+# let g:NERDTreeDirArrows=0
+
 # To change default shell from zsh to bash
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
-export PATH=/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:
-
-# Add `~/bin` to the `$PATH`
-export PATH="$HOME/bin:$PATH";
+# Securities Project
+# export GATSBY_APP_TYPE=TRADING
+export PATH_PREFIX="/app"
+export VOYAGER_LAUNCHER="true"
+# export PATH_PREFIX="/"
+# export VOYAGER_LAUNCHER="false"
 
 # Load the dotfiles, and source it:
 # * ~/.path can be used to extend `$PATH`.
@@ -103,3 +111,16 @@ npm-which () {
 
 # react native
 export REACT_EDITOR=vim
+
+[ -s "/Users/wonism/.scm_breeze/scm_breeze.sh" ] && source "/Users/wonism/.scm_breeze/scm_breeze.sh"
+
+##
+# Your previous /Users/wonism/.bash_profile file was backed up as /Users/wonism/.bash_profile.macports-saved_2021-08-05_at_18:22:44
+##
+
+# MacPorts Installer addition on 2021-08-05_at_18:22:44: adding an appropriate PATH variable for use with MacPorts.
+export PATH="/opt/local/bin:/opt/local/sbin:$PATH"
+# Finished adapting your PATH environment variable for use with MacPorts.
+
+export GPG_TTY=$(tty)
+. "$HOME/.cargo/env"

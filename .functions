@@ -1,5 +1,93 @@
 #!/usr/bin/env bash
 
+export RES_PATH="~/project/toss-origin/resources"
+export TDS_PATH="~/project/toss-origin/tds-web"
+export APP_BRIDGE_PATH="~/project/toss-origin/toss-app-bridge"
+
+# Running TDS, App Bridge docs page on local
+# [NOTE] PREREQUISITES
+# 1. install concurrently globally with `npm i -g concurrently`.
+# 2. cloning tds, app bridge project.
+# 2-1. build app bridge docs with `npm run build:docs`
+# 2-2. install gem in `<<APP_BRIDGE_ROOT>>/docs`
+
+function docs() {
+  concurrently -n "TDS_WEB,APP_BRIDGE" -c cyan,magenta "cd ${TDS_PATH} && npm start" "cd ${APP_BRIDGE_PATH} && npm run docs"
+}
+
+function res() {
+  eval cd "${RES_PATH}"
+  npm run serve
+}
+
+function tds() {
+  eval cd "${TDS_PATH}"
+  npm start
+}
+
+function bridge() {
+  eval cd "${APP_BRIDGE_PATH}"
+  npm run docs
+}
+
+function port() {
+  lsof -i -nP | grep LISTEN | awk '{print $(NF-1)" "$1}' | sort -u
+}
+
+TI_PATH="~/project/toss-invest/fintech"
+TI_ORIGIN="origin-toss"
+VW_PATH="~/project/toss-invest/voyager-web"
+VW_BNAME="alpha/trading"
+
+function lc() {
+  echo "127.0.0.1 local.tossinvest.com" | pbcopy
+}
+
+function tu() {
+  eval cd "${TI_PATH}"
+  bname=$(git rev-parse --abbrev-ref HEAD)
+
+  eval cd "${VW_PATH}"
+
+  if [[ ! -z $(git add -A; git status --short | grep '^[MARCD]';) ]]
+  then
+    git stash
+    echo "변경 사항을 stash했습니다."
+  fi
+
+  git checkout $VW_BNAME
+  git fetch --all && git merge $TI_ORIGIN/$bname
+}
+
+function sync() {
+  eval cd "${VW_PATH}"
+  git checkout develop
+  git pull
+  #git fetch $TI_ORIGIN && git rebase $TI_ORIGIN/develop
+  git fetch $TI_ORIGIN && git pull $TI_ORIGIN develop
+}
+
+function asdf() {
+  eval cd "${VW_PATH}"
+  git co develop && git pull && git co alpha/trading && git pull && git rebase develop && git p && git co master && git pull && git rebase develop && git p && go l && git co develop
+}
+
+function tud() {
+  eval cd "${TI_PATH}"
+  bname=$(git rev-parse --abbrev-ref HEAD)
+
+  eval cd "${VW_PATH}"
+
+  if [[ ! -z $(git add -A; git status --short | grep '^[MARCD]';) ]]
+  then
+    git stash
+    echo "변경 사항을 stash했습니다."
+  fi
+
+  git checkout develop
+  git fetch --all && git merge $TI_ORIGIN/$bname
+}
+
 # Make directory then change directory
 function mkcd() {
   mkdir -p "$@" && cd "$_";
@@ -36,9 +124,26 @@ function pr() {
     url=$(echo $url | sed -e "s/\:/\//" -e "s/git@/https:\/\//" -e "s/\.git//")
   fi
 
-  branch=$(git rev-parse --abbrev-ref HEAD)
+  # base=$(git log --decorate --simplify-by-decoration --oneline | grep -v "(HEAD" | head -n1 | sed 's/.* (\(.*\)) .*/\1/' | sed 's/\(.*\), .*/\1/' | sed 's/origin\///')
+  base="develop"
+  branch=$(git branch --show-current)
 
-  open $url/compare/$branch?expand=1
+  open $url/compare/$base...$branch?expand=1
+}
+
+# Open branch on current work
+function bt() {
+  url=$(git config --get remote.origin.url)
+
+  if [[ $url =~ "http" ]]; then
+    url=$(echo $url | sed -e "s/\.git//")
+  else
+    url=$(echo $url | sed -e "s/\:/\//" -e "s/git@/https:\/\//" -e "s/\.git//")
+  fi
+
+  branch=$(git branch --show-current)
+
+  open $url/tree/$branch?expand=1
 }
 
 # Clear branches on current git repository
@@ -47,13 +152,7 @@ function cb() {
   git branch | grep -v 'main\|master\|develop\|alpha|\beta' | awk '{cmd="git branch -D " $0; system(cmd)}'
 }
 
-# Youtube downloader
-function ydl() {
-  youtube-dl --geo-bypass $1
-}
-
-# Find text and replace it on current directory
-function fr() {
+function findAndReplace() {
   if [[ -z $2 ]]; then
     echo "Wrong inputs."
     exit 1
@@ -62,4 +161,214 @@ function fr() {
   # 1st arg: old string
   # 2nd arg: new string
   grep -r -l $(echo "$1") . | sort | uniq | xargs perl -e "s/$(echo "$1")/$(echo "$2")/" -pi;
+}
+
+function cc() {
+  name=''
+
+  if [[ -z $1 ]]; then
+    echo "컴퍼넌트 이름을 입력해주세요."
+    exit 1
+  else
+    mkdir -p src/components/$1
+    path=src/components/$1/index.tsx
+
+    if [[ -e $path ]]; then
+      mv $path $path.bak
+    fi
+
+    echo -e "import React from 'react';\n\nconst $1: React.FunctionComponent<{}> = () => <div>$1</div>;\n\nreturn $1;" >> $path
+  fi
+}
+
+function gocd() {
+  case $1 in
+    [lL][iI][vV][eE]|[lL])
+      open http://gocd.live.tossinvest.bz/go/pipelines?viewName=web
+      ;;
+    [dD][eE][vV]|[dD])
+      open http://gocd.dev.tossinvest.bz/go/pipelines?viewName=web
+      ;;
+    *)
+      exit 1
+      ;;
+  esac
+}
+
+# Shortcut
+function search() {
+  grep -rnw "$1" -e "$2"
+}
+
+function yw() {
+  if [[ -z $2 ]]; then
+    echo "스코프와 나머지 명들을 입력하세요."
+    exit 1
+  fi
+
+  local name=$1
+  local command=$2
+
+  case $1 in
+    b)
+      name="@tossinvest/babel"
+      ;;
+    babel)
+      name="@tossinvest/babel"
+      ;;
+    c)
+      name="@tossinvest/core"
+      ;;
+    core)
+      name="@tossinvest/core"
+      ;;
+    navigate)
+      name="@tossinvest/navigate"
+      ;;
+    r)
+      name="@tossinvest/rollup"
+      ;;
+    rollup)
+      name="@tossinvest/rollup"
+      ;;
+    n)
+      name="@tossinvest/next"
+      ;;
+    next)
+      name="@tossinvest/next"
+      ;;
+    t)
+      name="tossinvest"
+      ;;
+    ti)
+      name="tossinvest"
+      ;;
+    h)
+      name="home"
+      ;;
+    home)
+      name="home"
+      ;;
+    w)
+      name="waitlist"
+      ;;
+    *)
+      name=$1
+      ;;
+  esac
+
+  case $2 in
+    i)
+      command="install"
+      ;;
+    b)
+      command="build"
+      ;;
+    d)
+      command="build"
+      ;;
+    s)
+      command="start"
+      ;;
+    *)
+      comment=$2
+      ;;
+  esac
+
+  yarn workspace $name $command;
+}
+
+function gg() {
+  grep -rnw **/**/src -e $1 | grep -v libraries/core
+}
+
+function ggg() {
+  grep -l -rnw **/**/src -e $1
+}
+
+function nn() {
+  grep -rnw **/**/src -e $1 | grep 'function\|const\|interface\|type\|enum'
+}
+
+function buildTest() {
+  local start=$(date +%s);
+  yw core build;
+  local end=$(date +%s);
+
+  echo $(($end-$start));
+}
+
+function nleof() {
+  pcregrep -LMr '\n$' ${1:-.}
+}
+
+function kebab() {
+  local from to
+  for from in *; do
+    [[ -d $from && ! -h $from ]] || continue
+    to=$(sed -E 's/([^A-Z])([A-Z])/\1-\2/g; s/.*/\L&/' <<< "$from")
+    cd "$from" && { kebab; cd ..; } || exit
+    [[ $to = "$from" ]] && continue
+    if [[ -e $to ]]; then
+      printf "'%s' already exists. Skipping..\n" "$to" >&2
+      continue;
+    fi
+    mv "$from" "$to" || exit
+  done
+}
+
+function trd67() {
+  git pull;
+  git merge origin/TRD-67 --no-edit;
+  git push;
+}
+
+function starbucks() {
+  sudo route add -net 172.28.0.0 -netmask 255.255.128.0 10.200.200.200;
+}
+
+function urlencode() {
+  local length="${#1}"
+  for (( i = 0; i < length; i++ )); do
+    local c="${1:i:1}"
+    case $c in
+      [a-zA-Z0-9.~_-]) printf "$c" ;;
+      *) printf '%%%02X' "'$c"
+    esac
+  done
+}
+
+function urldecode() {
+  local url_encoded="${1//+/ }"
+  printf '%b' "${url_encoded//%/\\x}"
+}
+
+function supertoss() {
+  read -p "서브 도메인을 입력하세요. (e.g. trading-alpha) : " subdomain
+  read -p "이동할 페이지 주소를 입력하세요. (e.g. /stocks/A005930?range=1d) : " nextLandingUrl
+
+  local next=$(urlencode $(urlencode "${nextLandingUrl:-/}"))
+  local url="supertoss://securities?url=https%3A%2F%2F${subdomain}.tossinvest.com?nextLandingUrl=${next}&clearHistory=true&swipeRefresh=true"
+
+  echo "클립보드에 주소가 복사되었습니다."
+
+  echo "$url" | pbcopy
+}
+
+function live() {
+  gh pr create --base main --head qa --title "feat: [live-release]" --body "feat: [live-release]"
+}
+
+function qa() {
+  gh pr create --base qa --head develop --title "feat: [qa-release]" --body "feat: [qa-release]"
+}
+
+function gogo() {
+  local prNum=$(echo $(gh pr list | grep release) | { read first rest ; echo $first; })
+
+  if [[ ! -z $prNum ]]; then
+    gh pr review $prNum -a
+  else
+    echo "대기 중인 릴리즈 PR이 없어요"
+  fi
 }

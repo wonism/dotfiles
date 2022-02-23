@@ -1,14 +1,28 @@
 [color]
   ui = true
+[color "branch"]
+  current = yellow bold
+  local = green bold
+  remote = cyan bold
+[color "diff"]
+  meta = yellow bold
+  frag = magenta bold
+  old = red bold
+  new = green bold
+  whitespace = red reverse
+[color "status"]
+  added = green bold
+  changed = yellow bold
+  untracked = red bold
 [user]
   ;your name
   name = wonism
   ;your email
-  email = yocee57@gmail.com
+  email = wonism@tossinvest.com
   ;your username
   username = wonism
 [core]
-  editor = /usr/bin/vim
+  editor = /usr/local/bin/vim
 [merge]
   tool = vimdiff
 [push]
@@ -25,44 +39,216 @@
   clean = git-lfs clean %f
   smudge = git-lfs smudge %f
   required = true
+[delta]
+  features = line-numbers decorations
+  line-numbers = true
+[delta "decorations"]
+  minus-style = red bold normal
+  plus-style = green bold normal
+  minus-emph-style = white bold red
+  minus-non-emph-style = red bold normal
+  plus-emph-style = white bold green
+  plus-non-emph-style = green bold normal
+  file-style = yellow bold none
+  file-decoration-style = yellow box
+  hunk-header-style = magenta bold
+  hunk-header-decoration-style = magenta box
+  minus-empty-line-marker-style = normal normal
+  plus-empty-line-marker-style = normal normal
+  line-numbers-right-format = "{np:^4}│ "
 [alias]
-  a = add
-  # add interactive
+  ;get commit count from origin
+  cc = "rev-list --count origin/HEAD...HEAD"
+  pick = "! # pick one file by index; \n\
+    f() { \
+      COUNT=`git cc`; \
+      git status --short | \
+      sed s/^...// | \
+      head -\"${1:-$COUNT}\" | \
+      tail -1; \
+    }; f"
+  pickUnstaged = "! # pick an unstaged file by index; \n\
+    f() { \
+      COUNT=`git cc`; \
+      git status --short | \
+      grep -G '^ [MARCD] ' | \
+      sed s/^...// | \
+      head -\"${1:-$COUNT}\" | \
+      tail -1; \
+    }; f"
+  a = "!git add $(git status -s | fzf -m | awk '{print $2}')"
+  ;add interactive
   ai = "add -i"
+  ao = "! # add one file by index; \n\
+    f() { \
+      git pickUnstaged \"$1\" | \
+      awk '{cmd=\"git add \" $0; system(cmd)}'; \
+    }; f"
   c = commit
   s = status
-  # show status only staged files
-  ss = "!f(){ git status --short | grep '^[MARCD]'; };f"
-  d = diff
+  d = "! # checkout; \n\
+    f() { \
+      if [[ -z $1 ]]; then \
+        git diff $(git status -s | fzf -m | awk '{print $2}'); \
+        exit 1; \
+      else \
+        git diff $1; \
+      fi \
+    }; f"
+  do = "! # diff one file by index; \n\
+    f() { \
+      git pickUnstaged \"$1\" | \
+      awk '{cmd=\"git diff \" $0; system(cmd)}'; \
+    }; f"
+  dl = "! # check diff lines; \n\
+    f() { \
+      COUNT=`git cc`; \
+      git diff --stat HEAD~\"${1:-$COUNT}\" HEAD; \
+    }; f"
+  cf = "! # show changed files; \n\
+    f() { \
+      COUNT=`git cc`; \
+      git diff-tree -r --name-only --no-commit-id HEAD~\"${1:-$COUNT}\" HEAD; \
+    }; f"
+  sf = "! # show staged files; \n\
+    f() { \
+      git status --short | \
+      grep -v -G '^ [MARCD] '; \
+    }; f"
+  usf = "! # show unstaged files; \n\
+    f() { \
+      git status --short | \
+      grep -G '^ [MARCD] '; \
+    }; f"
   b = branch
-  l = log
-  # oneline log
-  lp = "log --pretty=oneline"
-  ld = log --graph --boundary --pretty=format:'%Cred%h%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>'
-  # show last commit hash
+  l = "log --show-signature"
+  ;log pretty
+  lp = log --graph --boundary --pretty=format:'%Cred%h%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>'
+  ;log short
+  ls = "log --pretty=\"format:%h\""
+  ;last log
   ll = "log --pretty=\"format:%h\" HEAD^..HEAD"
   p = push
   pu = pull
-  # changed files
-  cf = "diff-tree -r --name-only --no-commit-id ORIG_HEAD HEAD"
-  co = checkout
-  undo = "!f(){ git checkout HEAD@{1}; };f"
-  unstage = "!f(){ git reset -- \"$1\"; };f"
+  ; co = "!git checkout $(git branch | fzf)"
+  co = "! # checkout; \n\
+    f() { \
+      if [[ -z $1 ]]; then \
+        git checkout $(git branch | fzf); \
+        exit 1; \
+      else \
+        git checkout $1; \
+      fi \
+    }; f"
+  undo = "! # undo; \n\
+    f() { \
+      git checkout HEAD@{1}; \
+    }; f"
   cp = cherry-pick
-  # show current branch
+  unstage = "! # unstage file; \n\
+    f() { \
+      git reset -- \"$1\"; \
+    }; f"
+  ;current branch
   cb = "rev-parse --abbrev-ref HEAD"
-  # set upstream
-  su = "!f(){ git push origin \"$1\" --set-upstream; };f"
-  # create new branch
-  nb = "!f(){ git checkout -b \"$1\"; git push origin \"$1\" --set-upstream; };f"
-  # update branch name
-  ub = "!f(){ git branch -m \"$1\" \"$2\"; git push origin :\"$1\" \"$2\"; git push origin -u \"$2\"; };f"
-  # delete branch
-  db = "!f(){ git branch -D \"$1\"; git push origin --delete \"$1\"; };f"
-  # delete branch on local (not remote)
-  dbl = "!f(){ git branch -D \"$1\"; };f"
+  su = "! # set upstream; \n\
+    f() { \
+      git push origin \"$1\" --set-upstream; \
+    }; f"
+  nb = "! # create new branch ; \n\
+    f() { \
+      git checkout -b \"$1\"; \
+      git push origin \"$1\" --set-upstream; \
+    }; f"
+  ub = "! # update branch name; \n\
+    f() { \
+      git branch -m \"$1\" \"$2\"; \
+      git push origin :\"$1\" \"$2\"; \
+      git push origin -u \"$2\"; \
+    }; f"
+  deleteBranch = "! # delete branch (include origin); \n\
+    f() { \
+      git branch -D \"$1\"; \
+      git push origin --delete \"$1\";\
+    }; f"
+  db = "! # delete branch (include origin); \n\
+    f() { \
+      if [[ -z $1 ]]; then \
+        git deleteBranch $(git branch | fzf -m); \
+        exit 1; \
+      else \
+        git deleteBranch $1; \
+      fi \
+    }; f"
+  dbl = "! # delete branch locally; \n\
+    f() { \
+      if [[ -z $1 ]]; then \
+        git branch -D $(git branch | fzf -m); \
+        exit 1; \
+      else \
+        git branch -D $1; \
+      fi \
+    }; f"
+  rfb = "! # refresh branch (include origin); \n\
+    f() { \
+      local current=$(git rev-parse --abbrev-ref HEAD); \
+      git push; \
+      git branch -D \"$1\"; \
+      git push origin --delete \"$1\";\
+      git checkout -b \"$1\"; \
+      git push origin \"$1\" --set-upstream; \
+      git checkout \"$current\"; \
+    }; f"
+  mt = "mergetool --tool vimdiff"
+  trd = "rfb alpha/trading"
+  qa = "rfb feature/qa"
+  test1 = "rfb alpha/test1"
+  test2 = "rfb alpha/test2"
+  trd2 = "! # merge; \n\
+    f() { \
+      local current=$(git rev-parse --abbrev-ref HEAD); \
+      git checkout alpha/trading; \
+      git pull; \
+      git merge origin/\"$current\" --no-edit; \
+      git push; \
+      git checkout \"$current\"; \
+    }; f"
+  qa2 = "! # merge; \n\
+    f() { \
+      local current=$(git rev-parse --abbrev-ref HEAD); \
+      git checkout feature/qa; \
+      git pull; \
+      git merge origin/\"$current\" --no-edit; \
+      git push; \
+      git checkout \"$current\"; \
+    }; f"
+  test12 = "! # merge; \n\
+    f() { \
+      local current=$(git rev-parse --abbrev-ref HEAD); \
+      git checkout alpha/test1; \
+      git pull; \
+      git merge origin/\"$current\" --no-edit; \
+      git push; \
+      git checkout \"$current\"; \
+    }; f"
+  test22 = "! # merge; \n\
+    f() { \
+      local current=$(git rev-parse --abbrev-ref HEAD); \
+      git checkout alpha/test2; \
+      git pull; \
+      git merge origin/\"$current\" --no-edit; \
+      git push; \
+      git checkout \"$current\"; \
+    }; f"
   tree = "log --graph --oneline --all"
-  # show refs
   refs = for-each-ref --format=%(refname)
-  # make useful headings to paste into a GitHub review.
-  rv = "!f () { range=${1:-@{u\\}..}; git log --reverse --format='#### %h %s%n%n%n%n' \"$range\"; }; f"
+  ;makes useful headings to paste into a GH review.
+  rv = "log origin/HEAD..HEAD --reverse --format='- %s'"
+; [commit]
+  ;gpgsign = true
+; [http]
+ ;  proxy = http://proxyuser:proxypwd@proxy.server.com:8080
+[commit]
+  gpgsign = true
+[gpg]
+  program = /usr/local/MacGPG2/bin/gpg2
